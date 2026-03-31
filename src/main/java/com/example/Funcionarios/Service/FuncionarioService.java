@@ -3,6 +3,8 @@ package com.example.Funcionarios.Service;
 
 import com.example.Funcionarios.Entity.Funcionario;
 import com.example.Funcionarios.Repository.FuncionarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +18,8 @@ public class FuncionarioService {
         this.funcionarioRepository = funcionarioRepository;
     }
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     public Funcionario salvar(Funcionario funcionario){
         if(funcionarioRepository.existsByCpf(funcionario.getCpf())){
             throw new RuntimeException("CPF já cadastrado");
@@ -23,15 +27,25 @@ public class FuncionarioService {
         if (funcionario.getSalario() < 0){
             throw new RuntimeException("Salario invalido");
         }
+        funcionario.setSenha(passwordEncoder.encode(funcionario.getSenha()));
         return funcionarioRepository.save(funcionario);
 
     }
+
+
 
     public void desativar(Long Id){
         Funcionario f = funcionarioRepository.findById(Id).orElseThrow(() -> new RuntimeException("Funcionario não encontrado"));
         f.setAtivo(false);
         funcionarioRepository.save(f);
     }
+
+    public void deletar(Long Id){
+        Funcionario f = funcionarioRepository.findById(Id).orElseThrow(() -> new RuntimeException("Funcionario não encontrado"));
+        funcionarioRepository.delete(f);
+    }
+
+
     public List<Funcionario> listar (){
         return funcionarioRepository.findAll();
     }
